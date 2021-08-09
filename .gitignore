@@ -26,4 +26,4 @@ yarn-error.log*
 .env*
 
 # fonts
-/src/fonts
+/src/static/fonts
