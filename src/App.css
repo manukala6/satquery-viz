@@ -1,11 +1,7 @@
-@font-face {
+.infoPanel {
     font-family: 'Padauk';
-    font-style: normal;
-    src: local('Padauk'),
-        url('./static/fonts/PadaukBook-Regular.woff');
 }
 
-.infoPanel {
-    background-color: 'lightblue';
+.controlPanel {
     font-family: 'Padauk';
 }
