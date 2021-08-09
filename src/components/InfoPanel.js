@@ -1,19 +1,20 @@
 import React from 'react';
 import area from '@turf/area';
+import '../App.css'
 
 const CONTROL_PANEL_STYLE = {
     position: 'absolute',
     top: 10,
     right: 10,
-    backgroundColor: 'lightblue',
-    font: "20px arial,serif"
+    
+    fontFamily: "20px Padauk,sans-serif"
   }
   
 function InfoPanel({ polygon }) {
   const polygonArea = polygon && area(polygon) / 1000000;
 
   return (
-    <div style={CONTROL_PANEL_STYLE}>
+    <div className='infoPanel' style={CONTROL_PANEL_STYLE}>
       <h3>Draw Polygon</h3>
       {polygon && (
         <p>
