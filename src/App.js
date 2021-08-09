@@ -1,13 +1,17 @@
+// react imports
 import React from 'react';
-import DeckGL from '@deck.gl/react';
-import {MapView } from '@deck.gl/core';
-import { StaticMap, NavigationControl, MapContext } from 'react-map-gl';
-import { LineLayer } from '@deck.gl/layers';
-
 import { useState, useCallback, useRef } from 'react';
-import {Editor, DrawRectangleMode, EditingMode} from 'react-map-gl-draw';
+
+// dependency imports
+import DeckGL from '@deck.gl/react';
+import { MapView } from '@deck.gl/core';
+import { StaticMap, NavigationControl, MapContext } from 'react-map-gl';
+import { Editor, DrawRectangleMode, EditingMode } from 'react-map-gl-draw';
+
+// local imports
 import {getFeatureStyle, getEditHandleStyle} from './style';
 import InfoPanel from './components/InfoPanel';
+import ControlPanel from './components/ControlPanel';
 
 import './App.css';
 
@@ -25,14 +29,7 @@ const NAV_CONTROL_STYLE = {
   left: 10
 };
 
-const data = [
-  {sourcePosition: [-122.41669, 37.7853], targetPosition: [-122.41669, 37.781]}
-];
-
 function App() {
-  const layers = [
-    new LineLayer({id: 'line-layer', data})
-  ];
 
     // map feature CRUD
     const [mode, setMode] = useState(null);
@@ -79,7 +76,7 @@ function App() {
         initialViewState={INITIAL_VIEW_STATE}
         controller={true}
         ContextProvider={MapContext.Provider}
-        layers={layers}>
+      >
         <MapView id='map' width='100%' controller={true}>
           <StaticMap mapboxApiAccessToken={process.env.REACT_APP_MAPBOX_ACCESS_TOKEN}></StaticMap>
           <NavigationControl className='navPanel' style={NAV_CONTROL_STYLE} />
@@ -94,7 +91,8 @@ function App() {
             featureStyle={getFeatureStyle}
             editHandleStyle={getEditHandleStyle}
           />
-          <InfoPanel className='infoPanel' polygon={selectedFeature}/>
+          <InfoPanel polygon={selectedFeature}/>
+          <ControlPanel />
           {drawTools}
         </MapView>
       </DeckGL>
