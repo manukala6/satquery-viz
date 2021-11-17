@@ -1,8 +1,8 @@
-function QueryParam({ arg, intype}) {
+function QueryParam({ arg, intype, change}) {
     return (
         <>
             <p style={{float: 'left'}}>{arg}</p> <br/>
-            <input style={{float: 'right'}} type={intype}></input>
+            <input style={{float: 'right'}} type={intype} onChange={change}></input>
         </>
     )
 }
