@@ -120,12 +120,7 @@ function App() {
             editHandleStyle={getEditHandleStyle}
           />
           <InfoPanel polygon={selectedFeature}/>
-          <Form
-            formData={formData}
-            setFormData={setFormData}
-            submitting={submitting}
-            setSubmitting={setSubmitting}
-          />
+          <ControlPanel />
           {drawTools}
         </MapView>
       </DeckGL>
