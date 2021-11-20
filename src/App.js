@@ -71,32 +71,34 @@ function App() {
       </div>
     )
     
-    // controls
+    // query properties form
     const formReducer = (state, event) => {
       return {
-        ...state,
-        [event.name]: event.value
+          ...state,
+          [event.name]: event.value
       }
-    };
-
-    // control hooks
-    const [formData, setFormData] = useReducer(formReducer, {});
-    const [submitting, setSubmitting] = useState(false);
-
-    // control handlers
-    const handleSubmit = e => {
-      e.preventDefault();
-      setSubmitting(true);
-      setTimeout(() => {
-        setSubmitting(false);
-      }, 20000);
     }
-    const handleChange = e => {
+    const [formData, setFormData] = useReducer(formReducer,{
+      startDate: '2021-10-01',
+      endDate: '2021-10-15',
+      cloudCover: 25,
+      satellite: 'sentinel2',
+      index: 'NDVI'
+    })
+    const [submitForm, setSubmitForm] = useState(false);
+    const handleChange = (event) => {
       setFormData({
-        name: e.target.name,
-        value: e.target.value
+        name: event.target.name,
+        value: event.target.value
       })
+      console.log(formData)
     }
+    const handleSubmit = (event) => {
+      event.preventDefault();
+      setSubmitForm(true);
+      console.log(formData);
+    }
+
     
   return (
     <>
@@ -120,7 +122,12 @@ function App() {
             editHandleStyle={getEditHandleStyle}
           />
           <InfoPanel polygon={selectedFeature}/>
-          <ControlPanel />
+          <ControlPanel 
+            formData={formData} 
+            submitForm={submitForm} 
+            handleChange={handleChange} 
+            handleSubmit={handleSubmit}
+          />
           {drawTools}
         </MapView>
       </DeckGL>
