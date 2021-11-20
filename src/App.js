@@ -1,6 +1,6 @@
 // react imports
 import React from 'react';
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useReducer } from 'react';
 
 // dependency imports
 import DeckGL from '@deck.gl/react';
@@ -70,6 +70,34 @@ function App() {
         </div>
       </div>
     )
+    
+    // controls
+    const formReducer = (state, event) => {
+      return {
+        ...state,
+        [event.name]: event.value
+      }
+    };
+
+    // control hooks
+    const [formData, setFormData] = useReducer(formReducer, {});
+    const [submitting, setSubmitting] = useState(false);
+
+    // control handlers
+    const handleSubmit = e => {
+      e.preventDefault();
+      setSubmitting(true);
+      setTimeout(() => {
+        setSubmitting(false);
+      }, 20000);
+    }
+    const handleChange = e => {
+      setFormData({
+        name: e.target.name,
+        value: e.target.value
+      })
+    }
+    
   return (
     <>
       <DeckGL
@@ -92,7 +120,12 @@ function App() {
             editHandleStyle={getEditHandleStyle}
           />
           <InfoPanel polygon={selectedFeature}/>
-          <ControlPanel />
+          <Form
+            formData={formData}
+            setFormData={setFormData}
+            submitting={submitting}
+            setSubmitting={setSubmitting}
+          />
           {drawTools}
         </MapView>
       </DeckGL>

@@ -11,6 +11,7 @@ const INFO_PANEL_STYLE = {
   
 function InfoPanel({ polygon }) {
   const polygonArea = polygon && area(polygon) / 1000000;
+  console.log(polygon);
 
   return (
     <div className='infoPanel' style={INFO_PANEL_STYLE}>

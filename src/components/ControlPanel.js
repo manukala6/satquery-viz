@@ -24,7 +24,8 @@ function ControlPanel() {
     const handleSubmit = e => {
         e.preventDefault()
         setSubmitting(true);
-
+        const blog = { ...formData };
+        console.log(blog);
         /*setTimeout(() => {
             setSubmitting(false);
         }, 10000);*/
