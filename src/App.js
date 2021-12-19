@@ -4,9 +4,12 @@ import { useState, useCallback, useRef, useReducer } from 'react';
 
 // dependency imports
 import DeckGL from '@deck.gl/react';
+import { BitmapLayer } from '@deck.gl/layers';
 import { MapView } from '@deck.gl/core';
 import { StaticMap, NavigationControl, MapContext } from 'react-map-gl';
 import { Editor, DrawRectangleMode, EditingMode } from 'react-map-gl-draw';
+import bbox from '@turf/bbox';
+import area from '@turf/area';
 
 // local imports
 import {getFeatureStyle, getEditHandleStyle} from './style';
@@ -49,6 +52,11 @@ function App() {
       }
     }, []);
 
+    // DeckGL layers
+    const [pngData, setPngData] = useState(null);
+    const [bounds, setBounds] = useState(null);
+    const [layers, setLayers] = useState([]);
+
     // feature array
     const features = editorRef.current && editorRef.current.getFeatures();
     const selectedFeature = features && (features[selectedFeatureIndex] || features[features.length - 1]);
@@ -78,11 +86,11 @@ function App() {
           [event.name]: event.value
       }
     }
-    const [formData, setFormData] = useReducer(formReducer,{
-      startDate: '2021-10-01',
-      endDate: '2021-10-15',
-      cloudCover: 25,
-      satellite: 'sentinel2',
+    const [formData, setFormData] = useReducer(formReducer, {
+      startDate: '2021-06-01',
+      endDate: '2021-06-21',
+      cloudCover: 5,
+      satellite: 'Sentinel-2',
       index: 'NDVI'
     })
     const [submitForm, setSubmitForm] = useState(false);
@@ -91,12 +99,45 @@ function App() {
         name: event.target.name,
         value: event.target.value
       })
-      console.log(formData)
     }
+
+    async function postItem(url, data) {
+      return fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+      })
+      .then(res => {
+        return res.json()
+      })
+      .then(data => {
+        return `https://satquery-dec-test.s3.amazonaws.com/${data._id}/0_${data._id}.png`
+      })
+    }
+
     const handleSubmit = (event) => {
       event.preventDefault();
       setSubmitForm(true);
-      console.log(formData);
+      const jsonData = {};
+      jsonData['bbox'] = bbox(selectedFeature);
+      jsonData['start_date'] = formData.startDate;
+      jsonData['end_date'] = formData.endDate;
+      jsonData['cloud_cover'] = formData.cloudCover;
+      jsonData['satellite'] = formData.satellite;
+      jsonData['area_m'] = area(selectedFeature);
+      console.log(JSON.stringify(jsonData));
+
+      postItem('http://127.0.0.1:8008/items/', jsonData).then(data => {;  
+        const layer = new BitmapLayer({
+          id: 'bitmap-layer',
+          image: data,
+          bounds: bbox(selectedFeature)
+        })
+        setLayers([layer]);
+      });
+
     }
 
     
@@ -106,6 +147,7 @@ function App() {
         initialViewState={INITIAL_VIEW_STATE}
         controller={true}
         ContextProvider={MapContext.Provider}
+        layers={layers}
       >
         <MapView id='map' width='100%' controller={true}>
           <StaticMap mapboxApiAccessToken={process.env.REACT_APP_MAPBOX_ACCESS_TOKEN}></StaticMap>

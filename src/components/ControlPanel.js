@@ -41,7 +41,7 @@ function ControlPanel({ formData, submitForm, handleChange, handleSubmit}) {
                 />
                 <QueryField 
                     title='Cloud Cover:   ' 
-                    type='date' 
+                    type='number' 
                     name='cloudCover' 
                     value={formData.cloudCover || ''} 
                     onChange={handleChange}
