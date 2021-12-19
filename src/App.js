@@ -1,13 +1,20 @@
+// react imports
 import React from 'react';
-import DeckGL from '@deck.gl/react';
-import {MapView } from '@deck.gl/core';
-import { StaticMap, NavigationControl, MapContext } from 'react-map-gl';
-import { LineLayer } from '@deck.gl/layers';
+import { useState, useCallback, useRef, useReducer } from 'react';
 
-import { useState, useCallback, useRef } from 'react';
-import {Editor, DrawRectangleMode, EditingMode} from 'react-map-gl-draw';
+// dependency imports
+import DeckGL from '@deck.gl/react';
+import { BitmapLayer } from '@deck.gl/layers';
+import { MapView } from '@deck.gl/core';
+import { StaticMap, NavigationControl, MapContext } from 'react-map-gl';
+import { Editor, DrawRectangleMode, EditingMode } from 'react-map-gl-draw';
+import bbox from '@turf/bbox';
+import area from '@turf/area';
+
+// local imports
 import {getFeatureStyle, getEditHandleStyle} from './style';
 import InfoPanel from './components/InfoPanel';
+import ControlPanel from './components/ControlPanel';
 
 import './App.css';
 
@@ -25,14 +32,7 @@ const NAV_CONTROL_STYLE = {
   left: 10
 };
 
-const data = [
-  {sourcePosition: [-122.41669, 37.7853], targetPosition: [-122.41669, 37.781]}
-];
-
 function App() {
-  const layers = [
-    new LineLayer({id: 'line-layer', data})
-  ];
 
     // map feature CRUD
     const [mode, setMode] = useState(null);
@@ -51,6 +51,11 @@ function App() {
         setMode(new EditingMode());
       }
     }, []);
+
+    // DeckGL layers
+    const [pngData, setPngData] = useState(null);
+    const [bounds, setBounds] = useState(null);
+    const [layers, setLayers] = useState([]);
 
     // feature array
     const features = editorRef.current && editorRef.current.getFeatures();
@@ -73,13 +78,77 @@ function App() {
         </div>
       </div>
     )
+    
+    // query properties form
+    const formReducer = (state, event) => {
+      return {
+          ...state,
+          [event.name]: event.value
+      }
+    }
+    const [formData, setFormData] = useReducer(formReducer, {
+      startDate: '2021-06-01',
+      endDate: '2021-06-21',
+      cloudCover: 5,
+      satellite: 'Sentinel-2',
+      index: 'NDVI'
+    })
+    const [submitForm, setSubmitForm] = useState(false);
+    const handleChange = (event) => {
+      setFormData({
+        name: event.target.name,
+        value: event.target.value
+      })
+    }
+
+    async function postItem(url, data) {
+      return fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+      })
+      .then(res => {
+        return res.json()
+      })
+      .then(data => {
+        return `https://satquery-dec-test.s3.amazonaws.com/${data._id}/0_${data._id}.png`
+      })
+    }
+
+    const handleSubmit = (event) => {
+      event.preventDefault();
+      setSubmitForm(true);
+      const jsonData = {};
+      jsonData['bbox'] = bbox(selectedFeature);
+      jsonData['start_date'] = formData.startDate;
+      jsonData['end_date'] = formData.endDate;
+      jsonData['cloud_cover'] = formData.cloudCover;
+      jsonData['satellite'] = formData.satellite;
+      jsonData['area_m'] = area(selectedFeature);
+      console.log(JSON.stringify(jsonData));
+
+      postItem('http://127.0.0.1:8008/items/', jsonData).then(data => {;  
+        const layer = new BitmapLayer({
+          id: 'bitmap-layer',
+          image: data,
+          bounds: bbox(selectedFeature)
+        })
+        setLayers([layer]);
+      });
+
+    }
+
+    
   return (
     <>
       <DeckGL
         initialViewState={INITIAL_VIEW_STATE}
         controller={true}
         ContextProvider={MapContext.Provider}
-        layers={layers}>
+        layers={layers}
+      >
         <MapView id='map' width='100%' controller={true}>
           <StaticMap mapboxApiAccessToken={process.env.REACT_APP_MAPBOX_ACCESS_TOKEN}></StaticMap>
           <NavigationControl className='navPanel' style={NAV_CONTROL_STYLE} />
@@ -94,7 +163,13 @@ function App() {
             featureStyle={getFeatureStyle}
             editHandleStyle={getEditHandleStyle}
           />
-          <InfoPanel className='infoPanel' polygon={selectedFeature}/>
+          <InfoPanel polygon={selectedFeature}/>
+          <ControlPanel 
+            formData={formData} 
+            submitForm={submitForm} 
+            handleChange={handleChange} 
+            handleSubmit={handleSubmit}
+          />
           {drawTools}
         </MapView>
       </DeckGL>
