@@ -129,7 +129,7 @@ function App() {
       jsonData['area_m'] = area(selectedFeature);
       console.log(JSON.stringify(jsonData));
 
-      postItem('http://127.0.0.1:8008/items/', jsonData).then(data => {;  
+      postItem('http://dec-test--elb-641085563.us-east-1.elb.amazonaws.com/items/', jsonData).then(data => {;  
         const layer = new BitmapLayer({
           id: 'bitmap-layer',
           image: data,
